@@ -261,3 +261,7 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+docker/requirements.txt
+docker-build
+docker-up
