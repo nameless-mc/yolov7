@@ -1,7 +1,8 @@
 from setuptools import setup
 
 def _requires_from_file(filename):
-    ls = open(filename).read().splitlines()
+    with open(filename) as f:
+        ls = f.read().splitlines()
     return list(filter(lambda x : not (len(x) == 0 or x.startswith('#')), ls))
 
 setup(
