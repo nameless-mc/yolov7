@@ -1,6 +1,8 @@
 import argparse
 import time
 from pathlib import Path
+import tqdm
+import os
 
 import cv2
 import torch
@@ -162,6 +164,44 @@ def detect(save_img=False):
 
     print(f'Done. ({time.time() - t0:.3f}s)')
 
+def detect_output_dict(model, target_image, image_size, stride, conf_thres, iou_thres, device, convert_path = None):
+    model(torch.zeros(1, 3, image_size, image_size).to(
+        device).type_as(next(model.parameters())))
+    dataset = LoadImages(target_image, img_size=image_size, stride=stride)
+    print(len(dataset))
+
+    names = model.module.names if hasattr(model, 'module') else model.names
+
+    results = {}
+
+    for path, img, im0s, _ in tqdm.tqdm(dataset):
+
+        img = torch.from_numpy(img).to(device)
+        img = img.float()  # uint8 to fp16/32
+        img /= 255.0  # 0 - 255 to 0.0 - 1.0
+        if img.ndimension() == 3:
+            img = img.unsqueeze(0)
+
+        with torch.no_grad():
+            pred = model(img, augment=False)[0]
+        pred = non_max_suppression(pred, conf_thres, iou_thres)
+        for det in pred:
+            labels = []
+            if len(det):
+                det[:, :4] = scale_coords(
+                    img.shape[2:], det[:, :4], im0s.shape).round()
+                for *xyxy, conf, cls in reversed(det):
+                    name = names[int(cls)]
+                    w, h = abs(int(xyxy[0]) - int(xyxy[2])), abs(int(xyxy[1]) - int(xyxy[3]))
+                    area = w * h
+                    labels.append({"name": name, "area": area, "pred":conf.item()})
+            if(convert_path != None):
+                p = convert_path(path)
+            else:
+                p = os.path.splitext(os.path.basename(path))[0]
+            results[p] = labels
+
+    return results
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
