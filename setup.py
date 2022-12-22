@@ -10,8 +10,7 @@ def _requires_from_file(filename):
 
 setup(
     name = "yolov7",
-    packages=["yolov7"]
-    package_dir={"yolov7": "."},
+    packages=["yolov7"],
     py_modules=[splitext(basename(path))[0] for path in glob.glob('*.py')],
     install_requires = _requires_from_file('requirements.txt')
 )
