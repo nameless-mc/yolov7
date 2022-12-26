@@ -1,4 +1,5 @@
 import json
+import os
 import warnings
 import torch
 from yolov7.detect import detect_output_dict
@@ -14,8 +15,10 @@ if __name__ == '__main__':
     conf_thres = 0.01
     iou_thres = 0.01
     image_size = 64
-    target_step = 0
-    target_images = f"dataset/result_for_humans/img/*/steps/*/image_steps/{target_step}.png"
+    target_image_dir = f"dataset/data/2022-12-21T18:22:03+09:00/filtered/img"
+    json_path = f"dataset/data/2022-12-21T18:22:03+09:00/filtered/detect.json"
+
+    target_images = os.path.join(target_image_dir, "*.png")
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -26,6 +29,6 @@ if __name__ == '__main__':
     model = TracedModel(model, device, image_size)
 
     res = detect_output_dict(model, target_images, imgsz, stride, conf_thres,
-                 iou_thres, device, lambda path : path.split('/')[-3])  # dict(path, list[list[label, pred]])
-    with open(f"./dataset/detect_step_{target_step}.json", "w") as f:
+                 iou_thres, device, lambda path : os.path.splitext(os.path.basename(path))[0])  # dict(path, list[list[label, pred]])
+    with open(json_path, "w") as f:
         json.dump(res, f, indent=4, ensure_ascii=False)
