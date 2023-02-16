@@ -1,7 +1,7 @@
 import glob
 from os.path import basename
 from os.path import splitext
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def _requires_from_file(filename):
     with open(filename) as f:
@@ -10,7 +10,8 @@ def _requires_from_file(filename):
 
 setup(
     name = "yolov7",
-    package_dir={"": "yolov7"},
+    packages=find_packages(""),
+    package_dir={path: "yolov7" for path in find_packages(".")},
     py_modules=[splitext(basename(path))[0] for path in glob.glob('*.py')],
     install_requires = _requires_from_file('requirements.txt')
 )
